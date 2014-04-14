@@ -13,11 +13,12 @@
 // TODO This script relies on jQuery being installed on the page. Future
 // versions should get rid of that requirement so more people can install it.
 //
-(function($) {
+$(function() {
   var HelpfulEmbed, embed;
 
   // HelpfulEmbed Class
   HelpfulEmbed = function() {
+    this.bg = $('<div class="helpful-bg"></div>').hide().html('').appendTo(document.body);
     this.el = $('<div></div>').hide().html('').appendTo(document.body);
   }
 
@@ -29,19 +30,20 @@
     tempscript.type = "text/javascript";
     tempscript.id = "helpful_tempscript";
     tempscript.src = "//helpful.io/assets/embed_jsonp.js?body=1"
-    tempscript.src = "/assets/embed_jsonp.js?body=1" //DEV
+    tempscript.src = "http://localhost:5000/assets/embed_jsonp.js?body=1" //DEV
     this.el.get(0).appendChild(tempscript);
     var tempcss = document.createElement("link");
     tempcss.rel = 'stylesheet'
     tempcss.type = 'text/css'
     tempcss.href = '//helpful.io/assets/embed.css'
-    tempcss.href = '/assets/embed.css' //DEV
+    tempcss.href = 'http://localhost:5000/assets/embed.css' //DEV
     tempcss.media = 'all'
     document.head.appendChild(tempcss);
   }
   HelpfulEmbed.prototype.jsonpReturned = function(data) {
     var target = this.target
     var $target, targetOffset, targetOffsetBottom;
+    var that = this;
 
     $target = $(this.target);
     targetOffset = $target.offset();
@@ -49,15 +51,19 @@
     this.el.html(data.html);
 
     this.el.css({
-      bottom: '30px',
-      left: targetOffset.left,
+      top: $(window).height()/2 - this.el.height()/2,
+      left: $(window).width()/2,
       position: 'absolute'
     });
 
     this.el.show();
+    this.bg.fadeIn();
+
+    $(this.bg).click(function(){
+      that.close();
+    });
 
     //give the page time to index the nodes
-    var that = this;
     setTimeout(function(){
       console.log(that.el[0].getElementsByTagName('form')[0]);
       console.log(target.data('helpful'));
@@ -81,12 +87,13 @@
         e.preventDefault();
         return false;
       }
-    }, 0)
+    }, 0);
   }
 
   // Closes the embed popup at the target
   HelpfulEmbed.prototype.close = function(target) {
     this.el.hide();
+    this.bg.fadeOut();
   }
 
   // Toggles the opening and closing of a popup
@@ -109,5 +116,4 @@
     helpful_embed.toggle($(e.target));
     return true;
   });
-
-})(jQuery);
+});
